@@ -8,15 +8,22 @@ $data = json_decode(file_get_contents('php://input'), true);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $data) {
     $email = trim($data['email'] ?? '');
     $firebaseUid = trim($data['firebaseUid'] ?? '');
+    $provider = strtolower(trim($data['provider'] ?? 'google'));
     $nombre = trim($data['nombre'] ?? '');
     $apellido = trim($data['apellido'] ?? '');
     $telefono = trim($data['telefono'] ?? '');
     $photoURL = trim($data['photoURL'] ?? '');
+
+    if (!in_array($provider, ['google', 'facebook'], true)) {
+        $provider = 'google';
+    }
+
+    $providerLabel = ucfirst($provider);
     
     if (empty($email) || empty($firebaseUid) || empty($nombre)) {
         echo json_encode([
             'success' => false, 
-            'message' => 'Datos incompletos para registro con Google.'
+            'message' => "Datos incompletos para registro con {$providerLabel}."
         ]);
         exit;
     }
@@ -50,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $data) {
             
             echo json_encode([
                 'success' => true,
-                'message' => 'Inicio de sesión exitoso con Google',
+                'message' => "Inicio de sesión exitoso con {$providerLabel}",
                 'user' => [
                     'id_usuario' => (int)$userData['id_usuario'],
                     'nombre' => $userData['nombre'],
@@ -59,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $data) {
                     'telefono' => $userData['telefono'],
                     'id_rol' => $userData['id_rol'] ?? 6,
                     'rol' => $userData['nombre_rol'] ?? 'Cliente',
-                    'provider' => 'google',
+                    'provider' => $provider,
                     'photoURL' => $photoURL
                 ]
             ]);
@@ -100,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $data) {
                 
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Usuario registrado exitosamente con Google',
+                    'message' => "Usuario registrado exitosamente con {$providerLabel}",
                     'user' => [
                         'id_usuario' => (int)$idUsuario,
                         'nombre' => $nombre,
@@ -109,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $data) {
                         'telefono' => $telefono,
                         'id_rol' => 6,
                         'rol' => 'Cliente',
-                        'provider' => 'google',
+                        'provider' => $provider,
                         'photoURL' => $photoURL
                     ]
                 ]);
