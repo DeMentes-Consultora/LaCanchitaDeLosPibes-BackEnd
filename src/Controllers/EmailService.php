@@ -15,20 +15,59 @@ class EmailService {
         // Cargar variables de entorno
         $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
         $dotenv->load();
+
+        $mailHost = $_ENV['MAIL_HOST'] ?? '';
+        $mailAuth = ($_ENV['MAIL_SMTPAuth'] ?? 'true') === 'true';
+        $mailUser = $_ENV['MAIL_USERNAME'] ?? '';
+        $mailPass = $_ENV['MAIL_PASSWORD'] ?? '';
+        $mailPort = (int)($_ENV['MAIL_PORT'] ?? 587);
+        $mailEncryption = strtolower(trim($_ENV['MAIL_ENCRYPTION'] ?? 'tls'));
+        $fromAddress = $mailUser !== '' ? $mailUser : 'no-reply@localhost';
+        $mailLogEnabled = ($_ENV['MAIL_LOG_ENABLED'] ?? 'true') === 'true';
+
+        if ($mailEncryption === 'ssl' || $mailPort === 465) {
+            $secureMode = PHPMailer::ENCRYPTION_SMTPS;
+        } elseif ($mailEncryption === 'none' || $mailEncryption === '') {
+            $secureMode = false;
+        } else {
+            $secureMode = PHPMailer::ENCRYPTION_STARTTLS;
+        }
         
         // Configurar PHPMailer
         $this->mail = new PHPMailer(true);
         $this->mail->isSMTP();
-        $this->mail->Host       = $_ENV['MAIL_HOST'];
-        $this->mail->SMTPAuth   = $_ENV['MAIL_SMTPAuth'] === 'true';
-        $this->mail->Username   = $_ENV['MAIL_USERNAME'];
-        $this->mail->Password   = $_ENV['MAIL_PASSWORD'];
-        $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $this->mail->Port       = $_ENV['MAIL_PORT'];
+        $this->mail->Host       = $mailHost;
+        $this->mail->SMTPAuth   = $mailAuth;
+        $this->mail->Username   = $mailUser;
+        $this->mail->Password   = $mailPass;
+        $this->mail->SMTPSecure = $secureMode;
+        $this->mail->Port       = $mailPort;
         $this->mail->CharSet    = 'UTF-8';
+        $this->mail->Timeout    = 15;
+        $this->mail->SMTPKeepAlive = false;
+
+        if ($secureMode === false) {
+            $this->mail->SMTPAutoTLS = false;
+        }
+
+        // Evita bloqueos largos por validaciones SSL estrictas en algunas redes corporativas.
+        $this->mail->SMTPOptions = [
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+            ]
+        ];
+
+        if ($mailLogEnabled) {
+            $this->mail->SMTPDebug = 2;
+            $this->mail->Debugoutput = function ($str, $level) {
+                logMail("SMTP[$level] $str");
+            };
+        }
         
         // Configurar remitente
-        $this->mail->setFrom($_ENV['MAIL_USERNAME'], 'La Canchita de los Pibes');
+        $this->mail->setFrom($fromAddress, 'La Canchita de los Pibes');
     }
     
     /**

@@ -23,6 +23,7 @@ if (!$data) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $data) {
+    try {
     // Compatibilidad con diferentes nombres de campos
     $id_usuario = $data['id_usuario'] ?? $data['usuario_id'] ?? null;
     $id_cancha = isset($data['cancha']) ? intval($data['cancha']) : null;
@@ -31,6 +32,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $data) {
 
     if (!$id_usuario || !$id_cancha || !$fecha || !$horario) {
         echo json_encode(['success' => false, 'message' => 'Faltan datos para la reserva.']);
+        exit;
+    }
+
+    // Validar que el usuario exista para evitar errores de FK al insertar
+    $stmtUsuario = $conn->prepare("SELECT id_usuario FROM usuario WHERE id_usuario = ? LIMIT 1");
+    $stmtUsuario->bind_param("i", $id_usuario);
+    $stmtUsuario->execute();
+    $resUsuario = $stmtUsuario->get_result();
+    if (!$resUsuario || !$resUsuario->fetch_assoc()) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'El usuario indicado no existe.']);
+        exit;
+    }
+
+    // Validar que la cancha exista
+    $stmtCancha = $conn->prepare("SELECT id_cancha FROM cancha WHERE id_cancha = ? LIMIT 1");
+    $stmtCancha->bind_param("i", $id_cancha);
+    $stmtCancha->execute();
+    $resCancha = $stmtCancha->get_result();
+    if (!$resCancha || !$resCancha->fetch_assoc()) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'La cancha indicada no existe.']);
         exit;
     }
 
@@ -172,6 +195,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $data) {
         }
     } else {
         echo json_encode(['success' => false, 'message' => 'Fecha u horario invalido.']);
+    }
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al procesar la reserva.',
+            'error' => $e->getMessage()
+        ]);
     }
     exit;
 }
