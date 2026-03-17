@@ -3,12 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 26-08-2025 a las 14:14:40
+-- Tiempo de generación: 17-03-2026 a las 12:26:39
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
-
-CREATE DATABASE IF NOT EXISTS `lacanchitadelospibes` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `lacanchitadelospibes`;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -69,7 +66,6 @@ CREATE TABLE `empleado` (
   `idUpdate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 -- --------------------------------------------------------
 
 --
@@ -84,7 +80,6 @@ CREATE TABLE `fecha` (
   `habilitado` int(11) NOT NULL DEFAULT 1,
   `cancelado` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -134,12 +129,13 @@ CREATE TABLE `persona` (
   `edad` varchar(3) NOT NULL,
   `dni` varchar(10) NOT NULL,
   `telefono` varchar(11) NOT NULL,
+  `foto_perfil_url` varchar(512) DEFAULT NULL,
+  `foto_perfil_public_id` varchar(255) DEFAULT NULL,
   `habilitado` int(1) NOT NULL DEFAULT 1,
   `cancelado` int(1) NOT NULL DEFAULT 0,
   `idCreate` timestamp NOT NULL DEFAULT current_timestamp(),
   `idUpdate` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -158,7 +154,6 @@ CREATE TABLE `reserva` (
   `habilitado` int(11) NOT NULL DEFAULT 1,
   `cancelado` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
@@ -205,6 +200,9 @@ CREATE TABLE `usuario` (
   `cancelado` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Índices para tablas volcadas
+--
 
 --
 -- Indices de la tabla `cancha`
